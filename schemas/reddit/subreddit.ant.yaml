@@ -1,0 +1,53 @@
+# 🐜 Reddit Subreddit Schema
+# Ant ID: reddit.subreddit
+# Version: 1.0
+
+schema_version: "1.0"
+platform: reddit
+entity: subreddit
+description: "Extract subreddit metadata and recent posts"
+
+search:
+  input_format: "https://www.reddit.com/r/{subreddit}"
+  search_url: "https://www.reddit.com/r/"
+  
+  inputs:
+    - name: subreddit
+      label: "Subreddit Name"
+      placeholder: "e.g., programming"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    name:
+      selector: 'h1'
+      type: css
+      required: true
+    description:
+      selector: '[data-testid="subreddit-description"]'
+      type: css
+    members:
+      selector: '[data-testid="members-count"]'
+      type: css
+    online:
+      selector: '[data-testid="online-count"]'
+      type: css
+    created:
+      selector: '[data-testid="creation-date"]'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: name
+    - name: description
+    - name: members
+    - name: online
+    - name: created
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
