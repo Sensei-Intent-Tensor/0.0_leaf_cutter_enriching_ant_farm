@@ -1,0 +1,117 @@
+# 🐜 Yelp Business Schema
+# Ant ID: yelp.business
+# Version: 1.0
+
+schema_version: "1.0"
+platform: yelp
+entity: business_listing
+description: "Extract business listings from Yelp search results"
+
+search:
+  input_format: "{industry} {city}, {state}"
+  search_url: "https://www.yelp.com/search"
+  
+  inputs:
+    - name: industry
+      label: "Business Type"
+      placeholder: "e.g., restaurants, plumbers"
+      required: true
+    - name: city
+      label: "City"
+      placeholder: "e.g., Austin"
+      required: true
+    - name: state
+      label: "State"
+      placeholder: "e.g., TX"
+      required: true
+
+extraction:
+  engine: playwright
+  
+  navigation:
+    query_param_find: "find_desc"
+    query_param_location: "find_loc"
+    results_selector: '[data-testid="serp-ia-card"]'
+    
+  selectors:
+    title:
+      selector: 'a.css-19v1rkv'
+      type: css
+      required: true
+      
+    rating:
+      selector: '[aria-label*="star rating"]'
+      type: css
+      attribute: aria-label
+      postprocess: 'regex_extract:[\d.]+'
+      
+    review_count:
+      selector: '.reviewCount__09f24__tnBk4'
+      type: css
+      postprocess: 'regex_extract:\d+'
+      
+    category:
+      selector: '.priceCategory__09f24__QIlpV .css-11bijt4'
+      type: css
+      
+    neighborhood:
+      selector: '.css-chan6m'
+      type: css
+      
+    address:
+      selector: '.raw__09f24__afsuR address'
+      type: css
+      
+    phone:
+      selector: 'p.raw__09f24__afsuR:has-text("(")'
+      type: css
+      
+    website:
+      selector: 'a[href*="biz_redir"]'
+      type: css
+      attribute: href
+      
+    email:
+      method: extract_email_from_website
+      url_field: website
+
+email_extraction:
+  type: regex
+  pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+  blacklist_domains:
+    - example.com
+    - yelp.com
+    - wixpress.com
+  disallow_extensions:
+    - png
+    - jpg
+    - pdf
+  disallow_starts_with_digit: true
+
+output:
+  format: json
+  fields:
+    - name: title
+      label: "Business Name"
+    - name: rating
+      label: "Rating"
+    - name: review_count
+      label: "Reviews"
+    - name: category
+      label: "Category"
+    - name: neighborhood
+      label: "Neighborhood"
+    - name: address
+      label: "Address"
+    - name: phone
+      label: "Phone"
+    - name: website
+      label: "Website"
+    - name: email
+      label: "Email"
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
