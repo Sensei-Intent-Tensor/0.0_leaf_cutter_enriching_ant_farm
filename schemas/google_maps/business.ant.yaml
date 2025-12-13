@@ -1,0 +1,187 @@
+# 🐜 Google Maps Business Schema
+# Ant ID: google_maps.business
+# Version: 1.0
+
+schema_version: "1.0"
+platform: google_maps
+entity: business_listing
+description: "Extract business listings from Google Maps search results"
+
+# ═══════════════════════════════════════════════════════════════
+# SEARCH CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+search:
+  input_format: "{industry} near {city}, {state} {country}"
+  search_url: "https://www.google.com/maps?hl=en"
+  
+  # Input field definitions for UI
+  inputs:
+    - name: industry
+      label: "Industry/Business Type"
+      placeholder: "e.g., tattoo, coffee shop, dentist"
+      required: true
+    - name: city
+      label: "City"
+      placeholder: "e.g., Dallas"
+      required: true
+    - name: state
+      label: "State"
+      placeholder: "e.g., TX"
+      required: true
+    - name: country
+      label: "Country"
+      placeholder: "e.g., USA"
+      required: false
+      default: "USA"
+
+# ═══════════════════════════════════════════════════════════════
+# EXTRACTION CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+extraction:
+  engine: playwright
+  
+  # Navigation hints
+  navigation:
+    wait_for: '#searchboxinput'
+    search_input: '#searchboxinput'
+    search_submit: 'Enter'
+    results_selector: '.hfpxzc'
+    scroll_to_load: true
+    end_marker: "end of the list"
+  
+  # Field selectors
+  selectors:
+    title:
+      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[1]/h1'
+      type: xpath
+      required: true
+      
+    category:
+      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div[2]/span[1]/span/button'
+      type: xpath
+      
+    rating:
+      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/span[1]/span[1]'
+      type: xpath
+      
+    total_reviews:
+      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/span[2]/span/span'
+      type: xpath
+      postprocess: 'regex_extract:\d+'
+      
+    address:
+      selector: 'button[aria-label^="Address:"]'
+      type: css
+      attribute: aria-label
+      postprocess: 'strip_prefix:Address:'
+      
+    phone:
+      selector: 'button[aria-label^="Phone:"]'
+      type: css
+      attribute: aria-label
+      postprocess: 'strip_prefix:Phone:'
+      
+    website:
+      selector: 'a.CsEnBe'
+      type: css
+      attribute: href
+      
+    email:
+      method: extract_email_from_website
+      url_field: website
+
+# ═══════════════════════════════════════════════════════════════
+# EMAIL EXTRACTION (NESTED)
+# ═══════════════════════════════════════════════════════════════
+
+email_extraction:
+  type: regex
+  pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+  
+  # Pages to check for email
+  crawl_paths:
+    - "/"
+    - "/contact"
+    - "/about"
+    
+  # Filter rules
+  blacklist_domains:
+    - example.com
+    - domain.com
+    - wixpress.com
+    - sentry.io
+    - googleapis.com
+    
+  disallow_extensions:
+    - png
+    - jpg
+    - jpeg
+    - gif
+    - pdf
+    - js
+    - css
+    - svg
+    - webp
+    - ico
+    
+  disallow_starts_with_digit: true
+  
+  # Skip these URL patterns
+  skip_urls_containing:
+    - google.com
+    - facebook.com
+    - instagram.com
+    - twitter.com
+    - linkedin.com
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUT CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+output:
+  format: json
+  
+  fields:
+    - name: title
+      label: "Business Name"
+    - name: category
+      label: "Category"
+    - name: rating
+      label: "Rating"
+    - name: total_reviews
+      label: "Reviews"
+    - name: address
+      label: "Address"
+    - name: phone
+      label: "Phone"
+    - name: website
+      label: "Website"
+    - name: email
+      label: "Email"
+      
+  # Search context preservation
+  include_context:
+    - industry
+    - city
+    - state
+    - country
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
+    
+  schema_id:
+    type: string
+    value: "google_maps.business"
+    
+  schema_version:
+    type: string
+    value: "1.0"
