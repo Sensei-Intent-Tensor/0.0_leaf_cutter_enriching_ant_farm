@@ -1,0 +1,64 @@
+# 🐜 LinkedIn Company Schema
+# Ant ID: linkedin.company
+# Version: 1.0
+# Status: PLACEHOLDER - selectors need verification
+
+schema_version: "1.0"
+platform: linkedin
+entity: company
+description: "Extract public company page data from LinkedIn"
+
+search:
+  input_format: "{company_name} site:linkedin.com/company"
+  search_url: "https://www.google.com/search"
+  
+  inputs:
+    - name: company_name
+      label: "Company Name"
+      placeholder: "e.g., Microsoft"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    name:
+      selector: 'h1.org-top-card-summary__title'
+      type: css
+      required: true
+    tagline:
+      selector: '.org-top-card-summary__tagline'
+      type: css
+    industry:
+      selector: '.org-top-card-summary-info-list__info-item'
+      type: css
+    company_size:
+      selector: 'dd.org-about-company-module__company-size-definition-text'
+      type: css
+    headquarters:
+      selector: 'dd.org-about-company-module__headquarters'
+      type: css
+    website:
+      selector: 'a.org-about-company-module__company-page-url'
+      type: css
+      attribute: href
+    logo_url:
+      selector: 'img.org-top-card-primary-content__logo'
+      type: css
+      attribute: src
+
+output:
+  format: json
+  fields:
+    - name: name
+    - name: tagline
+    - name: industry
+    - name: company_size
+    - name: headquarters
+    - name: website
+    - name: logo_url
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
