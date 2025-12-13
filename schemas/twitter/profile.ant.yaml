@@ -1,0 +1,47 @@
+# 🐜 Twitter Profile Schema
+# Ant ID: twitter.profile
+# Status: PLACEHOLDER - selectors need verification
+
+schema_version: "1.0"
+platform: twitter
+entity: profile
+description: "Extract public Twitter/X profile data"
+
+search:
+  input_format: "https://twitter.com/{username}"
+  search_url: "https://twitter.com/"
+  
+  inputs:
+    - name: username
+      label: "Twitter Username"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    name:
+      selector: '[data-testid="UserName"]'
+      type: css
+    bio:
+      selector: '[data-testid="UserDescription"]'
+      type: css
+    followers:
+      selector: 'a[href$="/followers"] span'
+      type: css
+    following:
+      selector: 'a[href$="/following"] span'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: name
+    - name: bio
+    - name: followers
+    - name: following
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
