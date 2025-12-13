@@ -1,0 +1,56 @@
+# 🐜 Yellow Pages Business Schema
+# Ant ID: yellowpages.business
+# Version: 1.0
+
+schema_version: "1.0"
+platform: yellowpages
+entity: business
+description: "Extract business listings from Yellow Pages"
+
+search:
+  input_format: "{industry}"
+  search_url: "https://www.yellowpages.com/search"
+  
+  inputs:
+    - name: industry
+      label: "Business Type"
+      required: true
+    - name: location
+      label: "Location"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    name:
+      selector: '.business-name'
+      type: css
+      required: true
+    phone:
+      selector: '.phones'
+      type: css
+    address:
+      selector: '.street-address'
+      type: css
+    categories:
+      selector: '.categories'
+      type: css
+    website:
+      selector: 'a.track-visit-website'
+      type: css
+      attribute: href
+
+output:
+  format: json
+  fields:
+    - name: name
+    - name: phone
+    - name: address
+    - name: categories
+    - name: website
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
