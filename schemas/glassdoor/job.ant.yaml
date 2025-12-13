@@ -1,0 +1,54 @@
+# 🐜 Glassdoor Job Schema
+# Ant ID: glassdoor.job
+# Status: PLACEHOLDER
+
+schema_version: "1.0"
+platform: glassdoor
+entity: job
+description: "Extract job posting data from Glassdoor"
+
+search:
+  input_format: "{job_title}"
+  search_url: "https://www.glassdoor.com/Job/jobs.htm"
+  
+  inputs:
+    - name: job_title
+      label: "Job Title"
+      required: true
+    - name: location
+      label: "Location"
+      required: false
+
+extraction:
+  engine: playwright
+  selectors:
+    title:
+      selector: '.job-title'
+      type: css
+    company:
+      selector: '.employer-name'
+      type: css
+    location:
+      selector: '.location'
+      type: css
+    salary:
+      selector: '.salary-estimate'
+      type: css
+    rating:
+      selector: '.rating'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: title
+    - name: company
+    - name: location
+    - name: salary
+    - name: rating
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
