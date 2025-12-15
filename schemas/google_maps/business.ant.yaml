@@ -1,8 +1,9 @@
 # 🐜 Google Maps Business Schema
 # Ant ID: google_maps.business
-# Version: 1.0
+# Version: 2.0
+# ═══════════════════════════════════════════════════════════════
 
-schema_version: "1.0"
+schema_version: "2.0"
 platform: google_maps
 entity: business_listing
 description: "Extract business listings from Google Maps search results"
@@ -36,57 +37,137 @@ search:
       default: "USA"
 
 # ═══════════════════════════════════════════════════════════════
+# PAGINATION CONFIGURATION
+# Google Maps uses infinite scroll - no URL parameters
+# Results load as you scroll the left panel
+# Maximum ~120 results per search query
+# ═══════════════════════════════════════════════════════════════
+
+pagination:
+  type: infinite_scroll
+  results_per_page: 20
+  
+  infinite_scroll:
+    # The scrollable results container
+    container: 'div[role="feed"]'
+    
+    # Alternative container selectors (fallbacks)
+    container_fallbacks:
+      - 'div.m6QErb[aria-label]'
+      - 'div.m6QErb.DxyBCb'
+    
+    # Text that appears when no more results
+    end_marker: "You've reached the end of the list"
+    
+    # Alternative end markers
+    end_marker_fallbacks:
+      - "No results found"
+      - "end of the list"
+      
+    # Milliseconds to wait between scrolls (let results load)
+    scroll_delay: 2000
+    
+    # Maximum scroll attempts (safety limit)
+    max_scrolls: 50
+    
+    # Pixels to scroll each time
+    scroll_amount: 800
+    
+  # User-controllable pagination inputs
+  inputs:
+    - name: max_results
+      label: "Max Results"
+      type: number
+      default: 20
+      min: 3
+      max: 120
+      description: "Google Maps limits ~120 results per search. For more, narrow your search area."
+
+# ═══════════════════════════════════════════════════════════════
 # EXTRACTION CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 
 extraction:
   engine: playwright
   
-  # Navigation hints
+  # Navigation flow
   navigation:
     wait_for: '#searchboxinput'
     search_input: '#searchboxinput'
     search_submit: 'Enter'
-    results_selector: '.hfpxzc'
-    scroll_to_load: true
-    end_marker: "end of the list"
-  
-  # Field selectors
+    results_wait: 4000
+    
+  # Result item selectors (in the list)
+  result_item:
+    selector: 'a[href*="/maps/place/"]'
+    type: css
+    
+  # Field selectors (after clicking into detail panel)
   selectors:
     title:
-      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[1]/h1'
-      type: xpath
+      # Multiple selector strategies (try in order)
+      selectors:
+        - selector: 'h1.DUwDvf'
+          type: css
+        - selector: 'h1.fontHeadlineLarge'
+          type: css
+        - selector: 'div[role="main"] h1'
+          type: css
       required: true
       
     category:
-      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div[2]/span[1]/span/button'
-      type: xpath
+      selectors:
+        - selector: 'button[jsaction*="category"]'
+          type: css
+        - selector: 'button.DkEaL'
+          type: css
       
     rating:
-      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/span[1]/span[1]'
-      type: xpath
+      selectors:
+        - selector: 'span[role="img"][aria-label*="stars"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'regex_extract:[\d.]+'
+        - selector: 'div.F7nice span[aria-hidden="true"]'
+          type: css
       
     total_reviews:
-      selector: '//*[@id="QA0Szd"]/div/div/div[1]/div[3]/div/div[1]/div/div/div[2]/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/span[2]/span/span'
-      type: xpath
-      postprocess: 'regex_extract:\d+'
+      selectors:
+        - selector: 'span[aria-label*="reviews"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'regex_extract:\d[\d,]*'
+        - selector: 'button[aria-label*="reviews"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'regex_extract:\d[\d,]*'
       
     address:
-      selector: 'button[aria-label^="Address:"]'
-      type: css
-      attribute: aria-label
-      postprocess: 'strip_prefix:Address:'
+      selectors:
+        - selector: 'button[data-item-id="address"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'strip_prefix:Address:'
+        - selector: 'button[data-tooltip="Copy address"]'
+          type: css
       
     phone:
-      selector: 'button[aria-label^="Phone:"]'
-      type: css
-      attribute: aria-label
-      postprocess: 'strip_prefix:Phone:'
+      selectors:
+        - selector: 'button[data-item-id*="phone"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'strip_prefix:Phone:'
+        - selector: 'button[data-tooltip="Copy phone number"]'
+          type: css
       
     website:
-      selector: 'a.CsEnBe'
-      type: css
-      attribute: href
+      selectors:
+        - selector: 'a[data-item-id="authority"]'
+          type: css
+          attribute: href
+        - selector: 'a[data-tooltip="Open website"]'
+          type: css
+          attribute: href
       
     email:
       method: extract_email_from_website
@@ -184,4 +265,4 @@ metadata:
     
   schema_version:
     type: string
-    value: "1.0"
+    value: "2.0"
