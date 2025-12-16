@@ -1,0 +1,47 @@
+# 🐜 eBay Product Schema
+# Ant ID: ebay.product
+# Status: PLACEHOLDER
+
+schema_version: "1.0"
+platform: ebay
+entity: product
+description: "Extract product listing data from eBay"
+
+search:
+  input_format: "{query}"
+  search_url: "https://www.ebay.com/sch/i.html"
+  
+  inputs:
+    - name: query
+      label: "Search Query"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    title:
+      selector: '.s-item__title'
+      type: css
+    price:
+      selector: '.s-item__price'
+      type: css
+    shipping:
+      selector: '.s-item__shipping'
+      type: css
+    condition:
+      selector: '.SECONDARY_INFO'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: title
+    - name: price
+    - name: shipping
+    - name: condition
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true

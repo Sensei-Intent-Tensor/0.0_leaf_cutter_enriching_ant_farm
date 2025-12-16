@@ -1,0 +1,64 @@
+# 🐜 Indeed Job Schema
+# Ant ID: indeed.job
+# Version: 1.0
+
+schema_version: "1.0"
+platform: indeed
+entity: job
+description: "Extract job postings from Indeed"
+
+search:
+  input_format: "{job_title}"
+  search_url: "https://www.indeed.com/jobs"
+  
+  inputs:
+    - name: job_title
+      label: "Job Title"
+      required: true
+    - name: location
+      label: "Location"
+      required: false
+
+extraction:
+  engine: playwright
+  selectors:
+    title:
+      selector: '.jobTitle'
+      type: css
+      required: true
+    company:
+      selector: '.companyName'
+      type: css
+    location:
+      selector: '.companyLocation'
+      type: css
+    salary:
+      selector: '.salary-snippet'
+      type: css
+    description:
+      selector: '.job-snippet'
+      type: css
+    posted:
+      selector: '.date'
+      type: css
+    job_url:
+      selector: 'a.jcs-JobTitle'
+      type: css
+      attribute: href
+
+output:
+  format: json
+  fields:
+    - name: title
+    - name: company
+    - name: location
+    - name: salary
+    - name: description
+    - name: posted
+    - name: job_url
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true

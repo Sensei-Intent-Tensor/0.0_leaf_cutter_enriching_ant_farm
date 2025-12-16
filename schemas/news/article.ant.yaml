@@ -1,0 +1,67 @@
+# 🐜 Generic News Article Schema
+# Ant ID: news.article
+# Version: 1.0
+
+schema_version: "1.0"
+platform: news
+entity: article
+description: "Extract article content from news sites (generic selectors)"
+
+search:
+  input_format: "{url}"
+  search_url: ""
+  
+  inputs:
+    - name: url
+      label: "Article URL"
+      placeholder: "https://example.com/article"
+      required: true
+
+extraction:
+  engine: playwright
+  
+  # Uses common article selectors
+  selectors:
+    title:
+      selector: 'h1, article h1, .article-title, .post-title'
+      type: css
+      required: true
+    author:
+      selector: '[rel="author"], .author, .byline, .article-author'
+      type: css
+    published_date:
+      selector: 'time, .date, .published, .post-date'
+      type: css
+      attribute: datetime
+    content:
+      selector: 'article, .article-content, .post-content, .entry-content'
+      type: css
+    summary:
+      selector: 'meta[name="description"]'
+      type: css
+      attribute: content
+    image:
+      selector: 'meta[property="og:image"]'
+      type: css
+      attribute: content
+    source:
+      selector: 'meta[property="og:site_name"]'
+      type: css
+      attribute: content
+
+output:
+  format: json
+  fields:
+    - name: title
+    - name: author
+    - name: published_date
+    - name: summary
+    - name: content
+    - name: image
+    - name: source
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true

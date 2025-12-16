@@ -1,0 +1,117 @@
+# 🐜 Amazon Product Schema
+# Ant ID: amazon.product
+# Version: 1.0
+
+schema_version: "1.0"
+platform: amazon
+entity: product
+description: "Extract product listing data from Amazon"
+
+search:
+  input_format: "{query}"
+  search_url: "https://www.amazon.com/s"
+  
+  inputs:
+    - name: query
+      label: "Search Query"
+      placeholder: "e.g., wireless headphones"
+      required: true
+    - name: category
+      label: "Category (optional)"
+      placeholder: "e.g., Electronics"
+      required: false
+
+extraction:
+  engine: playwright
+  
+  navigation:
+    query_param: "k"
+    results_selector: '[data-component-type="s-search-result"]'
+    pagination_selector: '.s-pagination-next'
+    
+  selectors:
+    asin:
+      selector: '[data-asin]'
+      type: css
+      attribute: data-asin
+      required: true
+      
+    title:
+      selector: 'h2 a span'
+      type: css
+      required: true
+      
+    price:
+      selector: '.a-price .a-offscreen'
+      type: css
+      
+    original_price:
+      selector: '.a-price[data-a-strike="true"] .a-offscreen'
+      type: css
+      
+    rating:
+      selector: '.a-icon-star-small .a-icon-alt'
+      type: css
+      postprocess: 'regex_extract:[\d.]+'
+      
+    review_count:
+      selector: '.a-size-base.s-underline-text'
+      type: css
+      postprocess: 'regex_extract:[\d,]+'
+      
+    prime:
+      selector: '.a-icon-prime'
+      type: css
+      exists_check: true
+      
+    image_url:
+      selector: '.s-image'
+      type: css
+      attribute: src
+      
+    product_url:
+      selector: 'h2 a'
+      type: css
+      attribute: href
+      postprocess: 'prepend:https://www.amazon.com'
+      
+    brand:
+      selector: '.a-size-base-plus.a-color-base'
+      type: css
+      
+    delivery:
+      selector: '.a-text-bold:has-text("delivery")'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: asin
+      label: "ASIN"
+    - name: title
+      label: "Product Title"
+    - name: price
+      label: "Price"
+    - name: original_price
+      label: "Original Price"
+    - name: rating
+      label: "Rating"
+    - name: review_count
+      label: "Reviews"
+    - name: prime
+      label: "Prime Eligible"
+    - name: brand
+      label: "Brand"
+    - name: image_url
+      label: "Image URL"
+    - name: product_url
+      label: "Product URL"
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
+    
+  # Note on Amazon
+  rate_limit_warning: "Amazon has anti-bot protection. Consider using proxy rotation."
