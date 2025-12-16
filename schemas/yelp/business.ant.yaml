@@ -1,0 +1,251 @@
+# 🐜 Yelp Business Schema
+# Ant ID: yelp.business
+# Version: 2.0
+# ═══════════════════════════════════════════════════════════════
+
+schema_version: "2.0"
+platform: yelp
+entity: business_listing
+description: "Extract business listings from Yelp search results"
+
+# ═══════════════════════════════════════════════════════════════
+# SEARCH CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+search:
+  input_format: "{industry} {city}, {state}"
+  search_url: "https://www.yelp.com/search"
+  
+  # URL construction:
+  # https://www.yelp.com/search?find_desc={industry}&find_loc={city},+{state}
+  url_params:
+    find_desc: "{industry}"
+    find_loc: "{city}, {state}"
+  
+  inputs:
+    - name: industry
+      label: "Business Type"
+      placeholder: "e.g., restaurants, plumbers, tattoo"
+      required: true
+    - name: city
+      label: "City"
+      placeholder: "e.g., Austin"
+      required: true
+    - name: state
+      label: "State"
+      placeholder: "e.g., TX"
+      required: true
+
+# ═══════════════════════════════════════════════════════════════
+# PAGINATION CONFIGURATION
+# Yelp uses URL parameter pagination with 'start' offset
+# 10 results per page: start=0, start=10, start=20...
+# ═══════════════════════════════════════════════════════════════
+
+pagination:
+  type: url_param
+  results_per_page: 10
+  
+  url_param:
+    # The parameter name in the URL
+    name: start
+    
+    # How values increment:
+    # "offset" = 0, 10, 20, 30... (value = page * results_per_page)
+    # "page" = 1, 2, 3, 4... (value = page number)
+    style: offset
+    
+    # Example URLs generated:
+    # Page 1: /search?find_desc=pizza&find_loc=Dallas,+TX&start=0
+    # Page 2: /search?find_desc=pizza&find_loc=Dallas,+TX&start=10
+    # Page 3: /search?find_desc=pizza&find_loc=Dallas,+TX&start=20
+    
+  # Detect end of results
+  end_detection:
+    # No more results when this element is missing
+    has_results_selector: '[data-testid="serp-ia-card"]'
+    # Or when this text appears
+    end_text: "No results"
+    
+  # User-controllable pagination inputs (appear in UI)
+  inputs:
+    - name: max_results
+      label: "Max Results"
+      type: number
+      default: 30
+      min: 10
+      max: 500
+      description: "Total results to fetch (10 per page)"
+      
+    - name: max_pages
+      label: "Max Pages"
+      type: number
+      default: 3
+      min: 1
+      max: 50
+      description: "Alternative: limit by page count"
+
+# ═══════════════════════════════════════════════════════════════
+# EXTRACTION CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+extraction:
+  engine: playwright
+  
+  navigation:
+    # Wait for results to load
+    wait_for: '[data-testid="serp-ia-card"]'
+    wait_timeout: 10000
+    
+  # Result card selector
+  result_item:
+    selector: '[data-testid="serp-ia-card"]'
+    type: css
+    
+  selectors:
+    title:
+      selectors:
+        - selector: 'a.css-19v1rkv'
+          type: css
+        - selector: '[class*="businessName"] a'
+          type: css
+      required: true
+      
+    rating:
+      selectors:
+        - selector: '[aria-label*="star rating"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'regex_extract:[\d.]+'
+        - selector: '[class*="i-stars"]'
+          type: css
+          attribute: aria-label
+          postprocess: 'regex_extract:[\d.]+'
+      
+    review_count:
+      selectors:
+        - selector: '[class*="reviewCount"]'
+          type: css
+          postprocess: 'regex_extract:\d+'
+        - selector: 'span:contains("reviews")'
+          type: css
+          postprocess: 'regex_extract:\d+'
+      
+    category:
+      selectors:
+        - selector: '[class*="priceCategory"] [class*="css-"]'
+          type: css
+        - selector: '[class*="categories"] a'
+          type: css
+      
+    neighborhood:
+      selectors:
+        - selector: '[class*="secondaryAttributes"] span'
+          type: css
+        - selector: '.css-chan6m'
+          type: css
+      
+    address:
+      selectors:
+        - selector: '[class*="secondaryAttributes"] address'
+          type: css
+        - selector: '.raw__09f24__afsuR address'
+          type: css
+      
+    phone:
+      selectors:
+        - selector: 'p[class*="raw"]:has-text("(")'
+          type: css
+        - selector: '[class*="phone"]'
+          type: css
+      
+    website:
+      selectors:
+        - selector: 'a[href*="biz_redir"]'
+          type: css
+          attribute: href
+          postprocess: 'decode_yelp_redirect'
+      
+    email:
+      method: extract_email_from_website
+      url_field: website
+
+# ═══════════════════════════════════════════════════════════════
+# EMAIL EXTRACTION (NESTED)
+# ═══════════════════════════════════════════════════════════════
+
+email_extraction:
+  type: regex
+  pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+  
+  crawl_paths:
+    - "/"
+    - "/contact"
+    - "/about"
+    
+  blacklist_domains:
+    - example.com
+    - yelp.com
+    - wixpress.com
+    - sentry.io
+    
+  disallow_extensions:
+    - png
+    - jpg
+    - jpeg
+    - pdf
+    - js
+    - css
+    - svg
+    
+  disallow_starts_with_digit: true
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUT CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+output:
+  format: json
+  
+  fields:
+    - name: title
+      label: "Business Name"
+    - name: rating
+      label: "Rating"
+    - name: review_count
+      label: "Reviews"
+    - name: category
+      label: "Category"
+    - name: neighborhood
+      label: "Neighborhood"
+    - name: address
+      label: "Address"
+    - name: phone
+      label: "Phone"
+    - name: website
+      label: "Website"
+    - name: email
+      label: "Email"
+      
+  include_context:
+    - industry
+    - city
+    - state
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
+    
+  schema_id:
+    type: string
+    value: "yelp.business"
+    
+  schema_version:
+    type: string
+    value: "2.0"

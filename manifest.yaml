@@ -1,0 +1,211 @@
+# 🐜 Ant Farm Manifest
+# Registry index for Queen Loader
+# Version: 1.0
+
+manifest_version: "1.0"
+farm_name: "Leaf Cutter Enriching Ant Farm"
+description: "Schema-driven web extraction library"
+repository: "https://github.com/intent-tensor-theory/0.0_leaf_cutter_enriching_ant_farm"
+
+# Available Ants (schemas)
+ants:
+
+  # ═══════════════════════════════════════════════════════════════
+  # BUSINESS DIRECTORIES
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: google_maps.business
+    path: schemas/google_maps/business.ant.yaml
+    name: "Google Maps Business"
+    description: "Extract business listings from Google Maps"
+    platform: google_maps
+    entity: business
+    auth: keyless
+    tags: [business, local, maps, leads]
+    
+  - id: yelp.business
+    path: schemas/yelp/business.ant.yaml
+    name: "Yelp Business"
+    description: "Extract business listings from Yelp"
+    platform: yelp
+    entity: business
+    auth: keyless
+    tags: [business, reviews, local]
+    
+  - id: yellowpages.business
+    path: schemas/yellowpages/business.ant.yaml
+    name: "Yellow Pages Business"
+    description: "Extract business listings from Yellow Pages"
+    platform: yellowpages
+    entity: business
+    auth: keyless
+    tags: [business, directory, local]
+
+  # ═══════════════════════════════════════════════════════════════
+  # PROFESSIONAL NETWORKS
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: linkedin.profile
+    path: schemas/linkedin/profile.ant.yaml
+    name: "LinkedIn Profile"
+    description: "Extract public LinkedIn profile data"
+    platform: linkedin
+    entity: profile
+    auth: keyless
+    tags: [professional, profile, networking]
+    
+  - id: linkedin.company
+    path: schemas/linkedin/company.ant.yaml
+    name: "LinkedIn Company"
+    description: "Extract public company page data"
+    platform: linkedin
+    entity: company
+    auth: keyless
+    tags: [professional, company, b2b]
+
+  # ═══════════════════════════════════════════════════════════════
+  # SOCIAL PLATFORMS
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: reddit.user
+    path: schemas/reddit/user.ant.yaml
+    name: "Reddit User"
+    description: "Extract public Reddit user profile"
+    platform: reddit
+    entity: user
+    auth: keyless
+    tags: [social, profile, community]
+    
+  - id: reddit.subreddit
+    path: schemas/reddit/subreddit.ant.yaml
+    name: "Reddit Subreddit"
+    description: "Extract subreddit metadata and posts"
+    platform: reddit
+    entity: subreddit
+    auth: keyless
+    tags: [social, community, posts]
+    
+  - id: twitter.profile
+    path: schemas/twitter/profile.ant.yaml
+    name: "Twitter/X Profile"
+    description: "Extract public Twitter profile data"
+    platform: twitter
+    entity: profile
+    auth: keyless
+    tags: [social, profile, microblog]
+
+  # ═══════════════════════════════════════════════════════════════
+  # E-COMMERCE
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: amazon.product
+    path: schemas/amazon/product.ant.yaml
+    name: "Amazon Product"
+    description: "Extract product listing data from Amazon"
+    platform: amazon
+    entity: product
+    auth: keyless
+    tags: [ecommerce, product, reviews]
+    
+  - id: ebay.product
+    path: schemas/ebay/product.ant.yaml
+    name: "eBay Product"
+    description: "Extract product listing data from eBay"
+    platform: ebay
+    entity: product
+    auth: keyless
+    tags: [ecommerce, product, auction]
+
+  # ═══════════════════════════════════════════════════════════════
+  # REAL ESTATE
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: zillow.listing
+    path: schemas/zillow/listing.ant.yaml
+    name: "Zillow Listing"
+    description: "Extract property listing data from Zillow"
+    platform: zillow
+    entity: listing
+    auth: keyless
+    tags: [real_estate, property, housing]
+    
+  - id: realtor.listing
+    path: schemas/realtor/listing.ant.yaml
+    name: "Realtor.com Listing"
+    description: "Extract property listing data from Realtor.com"
+    platform: realtor
+    entity: listing
+    auth: keyless
+    tags: [real_estate, property, housing]
+
+  # ═══════════════════════════════════════════════════════════════
+  # JOB BOARDS
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: indeed.job
+    path: schemas/indeed/job.ant.yaml
+    name: "Indeed Job Posting"
+    description: "Extract job posting data from Indeed"
+    platform: indeed
+    entity: job
+    auth: keyless
+    tags: [jobs, employment, hiring]
+    
+  - id: glassdoor.job
+    path: schemas/glassdoor/job.ant.yaml
+    name: "Glassdoor Job Posting"
+    description: "Extract job posting data from Glassdoor"
+    platform: glassdoor
+    entity: job
+    auth: keyless
+    tags: [jobs, employment, reviews]
+
+  # ═══════════════════════════════════════════════════════════════
+  # NEWS & CONTENT
+  # ═══════════════════════════════════════════════════════════════
+  
+  - id: news.article
+    path: schemas/news/article.ant.yaml
+    name: "Generic News Article"
+    description: "Extract article content from news sites"
+    platform: news
+    entity: article
+    auth: keyless
+    tags: [news, content, media]
+
+# Categories for UI grouping
+categories:
+  - id: business_directories
+    name: "Business Directories"
+    icon: "🏪"
+    ants: [google_maps.business, yelp.business, yellowpages.business]
+    
+  - id: professional_networks
+    name: "Professional Networks"
+    icon: "💼"
+    ants: [linkedin.profile, linkedin.company]
+    
+  - id: social_platforms
+    name: "Social Platforms"
+    icon: "📱"
+    ants: [reddit.user, reddit.subreddit, twitter.profile]
+    
+  - id: ecommerce
+    name: "E-Commerce"
+    icon: "🛒"
+    ants: [amazon.product, ebay.product]
+    
+  - id: real_estate
+    name: "Real Estate"
+    icon: "🏠"
+    ants: [zillow.listing, realtor.listing]
+    
+  - id: job_boards
+    name: "Job Boards"
+    icon: "💼"
+    ants: [indeed.job, glassdoor.job]
+    
+  - id: news_content
+    name: "News & Content"
+    icon: "📰"
+    ants: [news.article]

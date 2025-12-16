@@ -1,0 +1,51 @@
+# 🐜 Zillow Listing Schema
+# Ant ID: zillow.listing
+# Status: PLACEHOLDER
+
+schema_version: "1.0"
+platform: zillow
+entity: listing
+description: "Extract property listing data from Zillow"
+
+search:
+  input_format: "{location}"
+  search_url: "https://www.zillow.com/homes/"
+  
+  inputs:
+    - name: location
+      label: "City, State or ZIP"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    address:
+      selector: '[data-test="property-card-addr"]'
+      type: css
+    price:
+      selector: '[data-test="property-card-price"]'
+      type: css
+    beds:
+      selector: 'ul.StyledPropertyCardHomeDetailsList li:nth-child(1)'
+      type: css
+    baths:
+      selector: 'ul.StyledPropertyCardHomeDetailsList li:nth-child(2)'
+      type: css
+    sqft:
+      selector: 'ul.StyledPropertyCardHomeDetailsList li:nth-child(3)'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: address
+    - name: price
+    - name: beds
+    - name: baths
+    - name: sqft
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true

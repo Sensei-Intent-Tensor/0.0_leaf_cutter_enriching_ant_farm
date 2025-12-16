@@ -1,0 +1,47 @@
+# 🐜 Realtor.com Listing Schema
+# Ant ID: realtor.listing
+# Status: PLACEHOLDER
+
+schema_version: "1.0"
+platform: realtor
+entity: listing
+description: "Extract property listing data from Realtor.com"
+
+search:
+  input_format: "{location}"
+  search_url: "https://www.realtor.com/realestateandhomes-search/"
+  
+  inputs:
+    - name: location
+      label: "City_State or ZIP"
+      required: true
+
+extraction:
+  engine: playwright
+  selectors:
+    address:
+      selector: '[data-testid="card-address"]'
+      type: css
+    price:
+      selector: '[data-testid="card-price"]'
+      type: css
+    beds:
+      selector: '[data-testid="property-meta-beds"]'
+      type: css
+    baths:
+      selector: '[data-testid="property-meta-baths"]'
+      type: css
+
+output:
+  format: json
+  fields:
+    - name: address
+    - name: price
+    - name: beds
+    - name: baths
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true

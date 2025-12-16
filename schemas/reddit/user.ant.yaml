@@ -1,0 +1,79 @@
+# 🐜 Reddit User Profile Schema
+# Ant ID: reddit.user
+# Version: 1.0
+
+schema_version: "1.0"
+platform: reddit
+entity: user
+description: "Extract public Reddit user profile data"
+
+search:
+  input_format: "https://www.reddit.com/user/{username}"
+  search_url: "https://www.reddit.com/user/"
+  
+  inputs:
+    - name: username
+      label: "Reddit Username"
+      placeholder: "e.g., spez"
+      required: true
+
+extraction:
+  engine: playwright
+  
+  navigation:
+    direct_url: true
+    wait_for: '[data-testid="profile-header"]'
+    
+  selectors:
+    username:
+      selector: 'h1'
+      type: css
+      required: true
+      
+    display_name:
+      selector: '[data-testid="profile-header"] h2'
+      type: css
+      
+    karma:
+      selector: '[data-testid="karma"]'
+      type: css
+      
+    cake_day:
+      selector: '[data-testid="cake-day"]'
+      type: css
+      
+    description:
+      selector: '[data-testid="profile-description"]'
+      type: css
+      
+    avatar_url:
+      selector: 'img[alt*="avatar"]'
+      type: css
+      attribute: src
+      
+    banner_url:
+      selector: '[data-testid="profile-banner"] img'
+      type: css
+      attribute: src
+
+output:
+  format: json
+  fields:
+    - name: username
+      label: "Username"
+    - name: display_name
+      label: "Display Name"
+    - name: karma
+      label: "Karma"
+    - name: cake_day
+      label: "Account Created"
+    - name: description
+      label: "Bio"
+    - name: avatar_url
+      label: "Avatar URL"
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true

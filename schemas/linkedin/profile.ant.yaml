@@ -1,0 +1,100 @@
+# 🐜 LinkedIn Profile Schema
+# Ant ID: linkedin.profile
+# Version: 1.0
+
+schema_version: "1.0"
+platform: linkedin
+entity: profile
+description: "Extract public LinkedIn profile data"
+
+search:
+  input_format: "{name} {company} site:linkedin.com/in"
+  search_url: "https://www.google.com/search"
+  
+  # Uses Google search to find public profiles
+  inputs:
+    - name: name
+      label: "Person Name"
+      placeholder: "e.g., John Smith"
+      required: true
+    - name: company
+      label: "Company (optional)"
+      placeholder: "e.g., Acme Corp"
+      required: false
+
+extraction:
+  engine: playwright
+  
+  navigation:
+    # Navigate through Google to LinkedIn
+    results_selector: 'a[href*="linkedin.com/in/"]'
+    follow_first_result: true
+    
+  selectors:
+    public_id:
+      selector: 'meta[property="og:url"]'
+      type: css
+      attribute: content
+      postprocess: 'regex_extract:linkedin.com/in/([^/]+)'
+      
+    name:
+      selector: 'h1.text-heading-xlarge'
+      type: css
+      required: true
+      
+    headline:
+      selector: '.text-body-medium.break-words'
+      type: css
+      
+    location:
+      selector: '.text-body-small.inline.t-black--light.break-words'
+      type: css
+      
+    current_company:
+      selector: 'button[aria-label*="Current company"]'
+      type: css
+      attribute: aria-label
+      postprocess: 'strip_prefix:Current company:'
+      
+    current_title:
+      selector: '.pv-text-details__right-panel-item-text'
+      type: css
+      
+    connections:
+      selector: 'span.t-bold:has-text("connections")'
+      type: css
+      postprocess: 'regex_extract:\d+'
+      
+    profile_picture:
+      selector: 'img.pv-top-card-profile-picture__image'
+      type: css
+      attribute: src
+
+output:
+  format: json
+  fields:
+    - name: public_id
+      label: "LinkedIn ID"
+    - name: name
+      label: "Name"
+    - name: headline
+      label: "Headline"
+    - name: location
+      label: "Location"
+    - name: current_company
+      label: "Company"
+    - name: current_title
+      label: "Title"
+    - name: connections
+      label: "Connections"
+    - name: profile_picture
+      label: "Profile Picture URL"
+
+metadata:
+  scraped_at:
+    type: string
+    format: datetime
+    auto: true
+  
+  # Note: LinkedIn aggressively blocks scraping
+  rate_limit_warning: "LinkedIn has strict anti-bot measures. Use with caution."
